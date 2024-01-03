@@ -1,12 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ConflictException, UnauthorizedException, Res } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserService } from './user.service';
 import { LoginUserParams } from 'src/utils/type';
+import { JwtService } from '@nestjs/jwt';
+import { Response } from '@nestjs/common';
 
 
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService){
+  constructor(private userService: UserService,
+    private jwtService: JwtService){
 
   }
   @Post('register')
@@ -25,14 +28,13 @@ export class UserController {
 
 
   @Post('login')
-  async loginUser(@Body() loginUserParams: LoginUserParams) {
+  async loginUser(@Body() loginUserParams: LoginUserParams, @Res({passthrough: true}) response: Response) {
     try {
-      const { user, token } = await this.userService.loginUser(loginUserParams);
-  
-  
+      const { user} = await this.userService.loginUser(loginUserParams);
       const userWithoutPassword = { ...user, password: undefined };
-  
-      return { message: 'Login successful', user: userWithoutPassword, token };
+      const jwt = await this.jwtService.signAsync({id:user.id});
+      return { message: 'Login successful', jwt,user};
+
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         return { message: 'Invalid credentials', error: 'Unauthorized', statusCode: 401 };
@@ -41,5 +43,5 @@ export class UserController {
       }
     }
   }
-  
+
 }

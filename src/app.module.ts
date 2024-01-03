@@ -1,13 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Module, Options } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
+import { JwtModule } from '@nestjs/jwt';
 import { TodoModule } from './todo/todo.module';
-import { TodoModule } from './todo/todo.module';
-import { TodoModule } from './todo/todo.module';
-import { TodoModule } from './todo/todo.module';
-import { TodoModule } from './todo/todo.module';
-import { TodoModule } from './todo/todo.module';
+import { ToDo } from './todo/entities/todo.entity';
 
 
 @Module({
@@ -19,11 +16,16 @@ import { TodoModule } from './todo/todo.module';
       username: 'root',
       password: '',
       database: 'mydatabase',
-      entities: [User],
+      entities: [User,ToDo],
       synchronize: true,
     }),
     UserModule,
-    TodoModule,
+    JwtModule.register({
+      global: true,
+      secret: 'secret',
+      signOptions: {expiresIn: '1d'}
+    }),
+    TodoModule
   ],
 })
 export class AppModule {}

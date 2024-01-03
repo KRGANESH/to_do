@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { LoginUserParams, RegisterUserParams } from 'src/utils/type';
-import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class UserService {
@@ -29,13 +28,8 @@ export class UserService {
 
     const user = await this.userRepository.findOne({ where: { username } });
 
-
     if (user && user.password === password) {
-
-      const token = jwt.sign({ userId: user.id, username: user.username }, '', { expiresIn: '1h' });
-
-  
-      return { user, token };
+      return { user};
     } else {
   
       throw new UnauthorizedException('Invalid credentials');
