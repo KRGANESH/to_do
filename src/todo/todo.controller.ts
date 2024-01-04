@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UnauthorizedException, NotFoundException, ConsoleLogger } from '@nestjs/common';
 import { TodoService } from './todo.service';
-import { UpdateTodoDto } from './dto/update-todo.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('todo')
@@ -8,8 +7,9 @@ export class TodoController {
   constructor(private readonly todoService: TodoService, private readonly jwtService: JwtService) {}
 
   @Post('create')
-  async createTodo(@Body() tododata:any, @Req() req:Request) {
-    const token = req.headers.get('authorization')?.split(' ')[1];
+  async createTodo(@Body() todoData: { description: string }, @Req() req:any) {
+    const token = req.headers['authorization']?.split(' ')[1];
+    console.log(token);
     if (!token) {
       throw new UnauthorizedException('Unauthorized');
     }
@@ -20,10 +20,11 @@ export class TodoController {
     catch (error) {
       throw new UnauthorizedException('Unauthorized');
     }
-    const username = decoded.username;
+    const userId = decoded.id;
+    const data=todoData.description;
     try{
-      const createdTodo = await this.todoService.createTodo(username, tododata);
-      return { message: 'Todo created successfully', username, createdTodo };
+      const createdTodo = await this.todoService.createTodo(userId, data);
+      return { message: 'Todo created successfully',createdTodo };
     }
     catch (error) {
       throw new NotFoundException('Failed to create todo');
@@ -31,8 +32,8 @@ export class TodoController {
   }
 
   @Get('read')
-  async read(@Body() @Req() req:Request) {
-    const token = req.headers.get('authorization')?.split(' ')[1];
+  async read(@Req() req:Request) {
+    const token =  req.headers['authorization']?.split(' ')[1];
     if (!token) {
       throw new UnauthorizedException('Unauthorized');
     }
@@ -43,19 +44,19 @@ export class TodoController {
     catch (error) {
       throw new UnauthorizedException('Unauthorized');
     }
-    const username = decoded.username;
+    const userId = decoded.id;
     try{
-      const todoItems = await this.todoService.readTodo(username);
-      return { message: 'ToDo Items ', username, todoItems };
+      const todoItems = await this.todoService.readTodo(userId);
+      return { message: 'ToDo Items ',todoItems };
     }
     catch (error) {
-      throw new NotFoundException('Failed to create todo');
+      throw new NotFoundException('Failed to retrieve todo');
     }
   }
 
 @Patch('update')
-async updateTodo(@Body()  data:string ,id:any, @Req() req:Request){
-  const token = req.headers.get('authorization')?.split(' ')[1];
+async updateTodo(@Body() updateItem: {data:string ,id:number}, @Req() req:Request){
+  const token =  req.headers['authorization']?.split(' ')[1];
   if (!token) {
     throw new UnauthorizedException('Unauthorized');
   }
@@ -66,10 +67,11 @@ async updateTodo(@Body()  data:string ,id:any, @Req() req:Request){
   catch (error) {
     throw new UnauthorizedException('Unauthorized');
   }
-  const username = decoded.username;
+  const userId = decoded.id;
+  console.log(updateItem.data,updateItem.id);
   try{
-    const updateData = await this.todoService.updateTodo(data,id);
-    return { message: 'updated successfuly'};
+    const updateData = await this.todoService.updateTodo(updateItem.data,userId,updateItem.id);
+    return { message: 'updated successfuly', updateData};
   }
   catch (error) {
     throw new NotFoundException('Failed update');
@@ -77,8 +79,8 @@ async updateTodo(@Body()  data:string ,id:any, @Req() req:Request){
 }
 
 @Delete('delete')
-async deleteTodo(@Body()  id:any, @Req() req:Request){
-  const token = req.headers.get('authorization')?.split(' ')[1];
+async deleteTodo(@Body()  deleteItem: {id:number}, @Req() req:Request){
+  const token =  req.headers['authorization']?.split(' ')[1];
   if (!token) {
     throw new UnauthorizedException('Unauthorized');
   }
@@ -88,8 +90,9 @@ async deleteTodo(@Body()  id:any, @Req() req:Request){
   } catch (error) {
     throw new UnauthorizedException('Unauthorized');
   }
+  const userId = decoded.id;
   try {
-    await this.todoService.deleteTodo(id);
+    await this.todoService.deleteTodo(deleteItem.id,userId);
     return { message: 'Todo deleted successfully'};
   } catch (error) {
     throw new NotFoundException('Failed to delete todo');

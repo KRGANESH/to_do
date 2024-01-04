@@ -6,7 +6,7 @@ export class ToDo {
   id: number;
 
   @Column()
-  username: string;
+  user_id: number;
 
   @Column()
   description: string;
