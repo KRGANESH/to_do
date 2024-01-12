@@ -33,7 +33,6 @@ export class UserController {
       const { user} = await this.userService.loginUser(loginUserParams);
       const userWithoutPassword = { ...user, password: undefined };
       const jwt = await this.jwtService.signAsync({id:user.id});
-      return { message: 'Login successful', jwt,user};
       return { message: 'Login successful', jwt,userWithoutPassword};
 
     } catch (error) {
