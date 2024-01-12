@@ -34,6 +34,7 @@ export class UserController {
       const userWithoutPassword = { ...user, password: undefined };
       const jwt = await this.jwtService.signAsync({id:user.id});
       return { message: 'Login successful', jwt,user};
+      return { message: 'Login successful', jwt,userWithoutPassword};
 
     } catch (error) {
       if (error instanceof UnauthorizedException) {
